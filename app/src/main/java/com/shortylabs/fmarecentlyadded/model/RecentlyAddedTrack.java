@@ -16,11 +16,13 @@ public class RecentlyAddedTrack {
 
     static final private String TAG = RecentlyAddedTrack.class.getSimpleName();
 
+    static final private String NULL_STRING = "null";
+
     private long trackId;
     private String trackTitle;
     private String artistName;
     private String trackImageUrl;
-    private String trackUrl;
+    private String trackListenUrl;
     private String trackDuration ;
     private int trackBitRate;
     private String albumTitle;
@@ -28,11 +30,11 @@ public class RecentlyAddedTrack {
     private int trackDownloads;
     private int trackFavorites;
 
-    public RecentlyAddedTrack(long trackId, String trackTitle, String artistName, String trackUrl) {
+    public RecentlyAddedTrack(long trackId, String trackTitle, String artistName, String trackListenUrl) {
         this.trackId = trackId;
         this.trackTitle = trackTitle;
         this.artistName = artistName;
-        this.trackUrl = trackUrl;
+        this.trackListenUrl = trackListenUrl;
     }
 
     public long getTrackId() {
@@ -67,12 +69,12 @@ public class RecentlyAddedTrack {
         this.trackImageUrl = trackImageUrl;
     }
 
-    public String getTrackUrl() {
-        return trackUrl;
+    public String getTrackListenUrl() {
+        return trackListenUrl;
     }
 
-    public void setTrackUrl(String trackUrl) {
-        this.trackUrl = trackUrl;
+    public void setTrackListenUrl(String trackListenUrl) {
+        this.trackListenUrl = trackListenUrl;
     }
 
     public String getTrackDuration() {
@@ -130,7 +132,7 @@ public class RecentlyAddedTrack {
                 ", trackTitle='" + trackTitle + '\'' +
                 ", artistName='" + artistName + '\'' +
                 ", trackImageUrl='" + trackImageUrl + '\'' +
-                ", trackUrl='" + trackUrl + '\'' +
+                ", trackListenUrl='" + trackListenUrl + '\'' +
                 ", trackDuration='" + trackDuration + '\'' +
                 ", trackBitRate=" + trackBitRate +
                 ", albumTitle='" + albumTitle + '\'' +
@@ -146,7 +148,7 @@ public class RecentlyAddedTrack {
             return null;
         }
 
-        List<RecentlyAddedTrack> tracks = new ArrayList<RecentlyAddedTrack>();
+        List<RecentlyAddedTrack> tracks = new ArrayList<>();
 
         JSONArray jsonTracks = jsonObject.optJSONArray("aTracks");
         if (jsonTracks == null) {
@@ -163,19 +165,28 @@ public class RecentlyAddedTrack {
             long trackId;
             String trackTitle;
             String artistName;
-            String trackUrl;
+            String trackListenUrl;
 
             try {
                 trackId = jsonTrack.getLong("track_id");
                 trackTitle = jsonTrack.getString("track_title");
                 artistName = jsonTrack.getString("artist_name");
-                trackUrl = jsonTrack.getString("track_url");
+                trackListenUrl = jsonTrack.getString("track_listen_url");
             } catch (JSONException e) {
                 Log.e(TAG, "Required field from track data is not available, skipping...");
                 continue;
             }
 
-            RecentlyAddedTrack rat = new RecentlyAddedTrack(trackId, trackTitle, artistName, trackUrl);
+            if (NULL_STRING.equals(trackTitle) ||
+                    NULL_STRING.equals(artistName) ||
+                    NULL_STRING.equals(trackListenUrl)){
+
+                Log.e(TAG, "Required field from track data is not available, skipping...");
+                continue;
+
+            }
+
+            RecentlyAddedTrack rat = new RecentlyAddedTrack(trackId, trackTitle, artistName, trackListenUrl);
 
             rat.setTrackImageUrl(jsonTrack.optString("track_image_file"));
             rat.setTrackDuration(jsonTrack.optString("track_duration"));

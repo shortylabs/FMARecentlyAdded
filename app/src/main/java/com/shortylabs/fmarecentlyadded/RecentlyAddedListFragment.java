@@ -67,7 +67,6 @@ public class RecentlyAddedListFragment extends Fragment {
             return;
         }
 
-
         RecentlyAddedListAdapter adapter = new RecentlyAddedListAdapter(getActivity(),
                 trackList);
 
