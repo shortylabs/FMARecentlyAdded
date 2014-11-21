@@ -2,6 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.shortylabs.fmarecentlyadded" >
 
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
@@ -16,6 +19,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name="com.shortylabs.fmarecentlyadded.service.RecentlyAddedService"
+            android:exported="false"
+            android:permission="android.permission.INTERNET" >
+        </service>
+
     </application>
 
 </manifest>
