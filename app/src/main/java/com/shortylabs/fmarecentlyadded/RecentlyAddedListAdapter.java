@@ -49,7 +49,12 @@ public class RecentlyAddedListAdapter extends ArrayAdapter<RecentlyAddedTrack> {
 
         /** Set data to your Views. */
         RecentlyAddedTrack item = list.get(position);
-        view.track_info_textview.setText(item.getArtistName() + " - " + item.getTrackTitle());
+
+        int formatId = R.string.format_track_entry;
+        view.track_info_textview.setText(String.format(parent.getContext().getString(
+                formatId,
+                item.getArtistName(),
+                item.getTrackTitle())));
 
         return rowView;
     }
