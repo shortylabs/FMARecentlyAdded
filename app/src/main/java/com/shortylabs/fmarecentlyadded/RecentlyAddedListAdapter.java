@@ -57,8 +57,12 @@ public class RecentlyAddedListAdapter extends ArrayAdapter<RecentlyAddedTrack> {
                 @Override
                 public void onClick(View v) {
                     Intent i= new Intent(mActivity, MediaPlayerService.class);
-                    i.putExtra(MediaPlayerService.EXTRA_TRACK_URL, item.getTrackFileUrl());
                     i.setAction(MediaPlayerService.ACTION_PLAY);
+
+                    i.putExtra(MediaPlayerService.EXTRA_TRACK_URL, item.getTrackFileUrl());
+                    i.putExtra(MediaPlayerService.EXTRA_TRACK_TITLE, item.getTrackTitle());
+                    i.putExtra(MediaPlayerService.EXTRA_TRACK_ARTIST, item.getArtistName());
+
                     mActivity.startService(i);
                 }
             });
