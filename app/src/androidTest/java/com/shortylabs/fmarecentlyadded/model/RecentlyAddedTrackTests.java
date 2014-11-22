@@ -39,7 +39,7 @@ public class RecentlyAddedTrackTests  extends AndroidTestCase {
         assertEquals(expected3.getTrackId(), rat3.getTrackId());
         assertEquals(expected3.getTrackTitle(), rat3.getTrackTitle());
         assertEquals(expected3.getArtistName(), rat3.getArtistName());
-        assertEquals(expected3.getTrackListenUrl(), rat3.getTrackListenUrl());
+        assertEquals(expected3.getTrackFileUrl(), rat3.getTrackFileUrl());
         assertEquals(expected3.getAlbumTitle(), rat3.getAlbumTitle());
         assertEquals(expected3.getTrackBitRate(), rat3.getTrackBitRate());
         assertEquals(expected3.getTrackDownloads(), rat3.getTrackDownloads());

@@ -22,7 +22,7 @@ public class RecentlyAddedTrack {
     private String trackTitle;
     private String artistName;
     private String trackImageUrl;
-    private String trackListenUrl;
+    private String trackFileUrl;
     private String trackDuration ;
     private int trackBitRate;
     private String albumTitle;
@@ -34,7 +34,7 @@ public class RecentlyAddedTrack {
         this.trackId = trackId;
         this.trackTitle = trackTitle;
         this.artistName = artistName;
-        this.trackListenUrl = trackListenUrl;
+        this.trackFileUrl = trackListenUrl;
     }
 
     public long getTrackId() {
@@ -69,12 +69,12 @@ public class RecentlyAddedTrack {
         this.trackImageUrl = trackImageUrl;
     }
 
-    public String getTrackListenUrl() {
-        return trackListenUrl;
+    public String getTrackFileUrl() {
+        return trackFileUrl;
     }
 
-    public void setTrackListenUrl(String trackListenUrl) {
-        this.trackListenUrl = trackListenUrl;
+    public void setTrackFileUrl(String trackFileUrl) {
+        this.trackFileUrl = trackFileUrl;
     }
 
     public String getTrackDuration() {
@@ -132,7 +132,7 @@ public class RecentlyAddedTrack {
                 ", trackTitle='" + trackTitle + '\'' +
                 ", artistName='" + artistName + '\'' +
                 ", trackImageUrl='" + trackImageUrl + '\'' +
-                ", trackListenUrl='" + trackListenUrl + '\'' +
+                ", trackFileUrl='" + trackFileUrl + '\'' +
                 ", trackDuration='" + trackDuration + '\'' +
                 ", trackBitRate=" + trackBitRate +
                 ", albumTitle='" + albumTitle + '\'' +
@@ -171,7 +171,7 @@ public class RecentlyAddedTrack {
                 trackId = jsonTrack.getLong("track_id");
                 trackTitle = jsonTrack.getString("track_title");
                 artistName = jsonTrack.getString("artist_name");
-                trackListenUrl = jsonTrack.getString("track_listen_url");
+                trackListenUrl = jsonTrack.getString("track_file_url");
             } catch (JSONException e) {
                 Log.e(TAG, "Required field from track data is not available, skipping...");
                 continue;

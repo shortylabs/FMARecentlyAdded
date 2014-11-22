@@ -9,7 +9,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.shortylabs.fmarecentlyadded.model.RecentlyAddedTrack;
 import com.shortylabs.fmarecentlyadded.service.RecentlyAddedService;
@@ -41,6 +43,14 @@ public class RecentlyAddedListFragment extends Fragment {
             Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_recently_added_list, container, false);
         ViewHolder.listview =  (ListView)rootView.findViewById(R.id.listView);
+
+        ViewHolder.listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Toast.makeText(getActivity(), "Detail coming soon", Toast.LENGTH_LONG).show();
+            }
+        });
+
         runService();
 
         return rootView;
@@ -104,7 +114,7 @@ public class RecentlyAddedListFragment extends Fragment {
 
             // If RecentlyAddedListFragment hasn't been garbage collected
             // (closed by user), proceed.
-            if (recentlyAddedListFragment != null) {
+            if (recentlyAddedListFragment != null && recentlyAddedListFragment.getActivity() != null) {
 
                 // Extract the data from Message, which is in the form
                 // of a Bundle that can be passed across processes.
