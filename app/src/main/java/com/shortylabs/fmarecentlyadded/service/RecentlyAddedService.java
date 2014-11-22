@@ -28,7 +28,7 @@ public class RecentlyAddedService extends IntentService {
     /**
      * The key used to store/retrieve a Messenger extra from a Bundle.
      */
-    public static final String MESSENGER_KEY = "MESSENGER";
+    public static final String RECENTLY_ADDED_SERVICE_MESSENGER_KEY = "RECENTLY_ADDED_SERVICE_MESSENGER";
 
 
     /**
@@ -48,8 +48,8 @@ public class RecentlyAddedService extends IntentService {
     @Override
     protected void onHandleIntent(Intent intent) {
         Messenger messenger;
-        if (intent.hasExtra(MESSENGER_KEY)) {
-            messenger = (Messenger) intent.getExtras().get("MESSENGER");
+        if (intent.hasExtra(RECENTLY_ADDED_SERVICE_MESSENGER_KEY)) {
+            messenger = (Messenger) intent.getExtras().get(RECENTLY_ADDED_SERVICE_MESSENGER_KEY);
         }
         else {
             Log.e(TAG, "Expected Messenger extra not found in intent");
@@ -119,7 +119,7 @@ public class RecentlyAddedService extends IntentService {
 
         Intent intent = new Intent(context,
                 RecentlyAddedService.class);
-        intent.putExtra(MESSENGER_KEY,
+        intent.putExtra(RECENTLY_ADDED_SERVICE_MESSENGER_KEY,
                 messenger);
 
         return intent;
