@@ -44,8 +44,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 
             Log.d(TAG, "onStartCommand - ACTION_PLAY");
 
-
-
             String trackTitle = null;
             String trackArtist = null;
             if (intent.hasExtra(MediaPlayerService.EXTRA_TRACK_URL)) {
@@ -71,11 +69,9 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
                     .setContentIntent(pi)
                     .build();
 
-
-            init();
-
             startForeground(NOTIFICATION_ID, notification);
 
+            init();
 
 //            url = "http://freemusicarchive.org/music/listen/4e70998ddd2e84bd1a6bc24217e3f7bfce122186";
 //            url = "http://freemusicarchive.org/music/Primavera_Sound/OM/Live_At_Primavera_Sound_2013_OM/OM_-_01_-_Sinai.mp3";
@@ -90,10 +86,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     private void init() {
 
         Log.d(TAG, "init");
-
-        if (mMediaPlayer != null && mMediaPlayer.isPlaying()){
-            stop();
-        }
 
         mMediaPlayer = new MediaPlayer();
         mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
