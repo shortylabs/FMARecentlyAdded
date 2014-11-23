@@ -40,6 +40,8 @@ public class RecentlyAddedListAdapter extends ArrayAdapter<RecentlyAddedTrack> {
 
         if(rowView == null)
         {
+
+
             // Get a new instance of the row layout view
             LayoutInflater inflater = mActivity.getLayoutInflater();
             rowView = inflater.inflate(R.layout.recently_added_item, null);
@@ -62,13 +64,8 @@ public class RecentlyAddedListAdapter extends ArrayAdapter<RecentlyAddedTrack> {
                     i.putExtra(MediaPlayerService.EXTRA_TRACK_ARTIST, item.getArtistName());
 
                     mActivity.startService(i);
-
-                    // change row layout to include play, pause, stop controls
-                    v.setSelected(true);
-                    notifyDataSetChanged();
                 }
             });
-
 
 
             rowView.setTag(view);
@@ -96,6 +93,5 @@ public class RecentlyAddedListAdapter extends ArrayAdapter<RecentlyAddedTrack> {
     protected static class ViewHolder{
         protected TextView track_info_textview;
         protected ImageButton play_button;
-        protected ImageButton stop_button;
     }
 }

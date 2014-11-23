@@ -45,7 +45,6 @@ public class RecentlyAddedService extends IntentService {
         super(RECENTLY_ADDED_SERVICE);
     }
 
-
     @Override
     protected void onHandleIntent(Intent intent) {
         Messenger messenger;

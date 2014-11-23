@@ -38,8 +38,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     public static final String ACTION_PLAY = "com.shortylabs.fmarecentlyadded.service.PLAY";
     private MediaPlayer mMediaPlayer = null;
     private String mTrackUrl;
-    private String mTrackTitle;
-    private String mTrackArtist;
 
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent.getAction().equals(ACTION_PLAY)) {
@@ -47,23 +45,45 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
             Log.d(TAG, "onStartCommand - ACTION_PLAY");
 
 
+
+            String trackTitle = null;
+            String trackArtist = null;
             if (intent.hasExtra(MediaPlayerService.EXTRA_TRACK_URL)) {
                 mTrackUrl = intent.getStringExtra(MediaPlayerService.EXTRA_TRACK_URL) ;
             }
 
             if (intent.hasExtra(MediaPlayerService.EXTRA_TRACK_TITLE)) {
-                mTrackTitle = intent.getStringExtra(MediaPlayerService.EXTRA_TRACK_TITLE) ;
+                trackTitle = intent.getStringExtra(MediaPlayerService.EXTRA_TRACK_TITLE) ;
             }
 
             if (intent.hasExtra(MediaPlayerService.EXTRA_TRACK_ARTIST)) {
-                mTrackArtist = intent.getStringExtra(MediaPlayerService.EXTRA_TRACK_ARTIST) ;
+                trackArtist = intent.getStringExtra(MediaPlayerService.EXTRA_TRACK_ARTIST) ;
             }
+
+            PendingIntent pi = PendingIntent.getActivity(getApplicationContext(), 0,
+                    new Intent(getApplicationContext(), RecentlyAddedListActivity.class),
+                    PendingIntent.FLAG_UPDATE_CURRENT);
+            Notification notification = new NotificationCompat.Builder(getApplicationContext())
+                    .setContentTitle(trackTitle)
+                    .setContentText(trackArtist)    // 2nd line of text
+                    .setSmallIcon(android.R.drawable.ic_media_play)
+                    .setOngoing(true)
+                    .setContentIntent(pi)
+                    .build();
 
 
             init();
 
-        }
+            startForeground(NOTIFICATION_ID, notification);
 
+
+//            url = "http://freemusicarchive.org/music/listen/4e70998ddd2e84bd1a6bc24217e3f7bfce122186";
+//            url = "http://freemusicarchive.org/music/Primavera_Sound/OM/Live_At_Primavera_Sound_2013_OM/OM_-_01_-_Sinai.mp3";
+//            url = "http://freemusicarchive.org/music/download/1373693bb1b21fe2db1be5b4579ed440337e311f";
+
+
+
+        }
         return START_NOT_STICKY;
     }
 
@@ -74,21 +94,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         if (mMediaPlayer != null && mMediaPlayer.isPlaying()){
             stop();
         }
-
-        PendingIntent pi = PendingIntent.getActivity(getApplicationContext(), 0,
-                new Intent(getApplicationContext(), RecentlyAddedListActivity.class),
-                PendingIntent.FLAG_UPDATE_CURRENT);
-        Notification notification = new NotificationCompat.Builder(getApplicationContext())
-                .setContentTitle(mTrackTitle)
-                .setContentText(mTrackArtist)    // 2nd line of text
-                .setSmallIcon(android.R.drawable.ic_media_play)
-                .setOngoing(true)
-                .setContentIntent(pi)
-                .build();
-
-
-
-        startForeground(NOTIFICATION_ID, notification);
 
         mMediaPlayer = new MediaPlayer();
         mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
@@ -115,7 +120,9 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         try {
             mMediaPlayer.setDataSource(mTrackUrl);
             mMediaPlayer.prepareAsync(); // might take long! (for buffering, etc)
-        } catch (IOException | IllegalArgumentException e) {
+        } catch (IOException e) {
+            Log.e(TAG, e.getMessage());
+        }catch (IllegalArgumentException e) {
             Log.e(TAG, e.getMessage());
         }
 
@@ -215,7 +222,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
                 // resume playback
                 if (mMediaPlayer == null) {
                     init();
-
                 }
                 else if (!mMediaPlayer.isPlaying()) {
                     mMediaPlayer.start();
