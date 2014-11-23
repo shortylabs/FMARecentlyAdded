@@ -12,9 +12,15 @@
         android:id="@+id/play_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@android:drawable/ic_media_play"
+        android:background="@drawable/play_button"
         />
 
+    <ImageButton
+        android:id="@+id/stop_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/stop_button"
+        />
 
 
     <TextView
@@ -25,6 +31,9 @@
         android:id="@+id/track_info_textview"
         android:ellipsize="end"
         android:singleLine="true" />
+
+
+
 
 
 </LinearLayout>
