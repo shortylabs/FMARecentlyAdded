@@ -1,7 +1,8 @@
 package com.shortylabs.fmarecentlyadded;
 
-import android.support.v7.app.ActionBarActivity;
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -19,6 +20,11 @@ public class RecentlyAddedListActivity extends ActionBarActivity {
         }
     }
 
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

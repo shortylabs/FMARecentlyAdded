@@ -99,6 +99,17 @@ public class RecentlyAddedListAdapter extends ArrayAdapter<RecentlyAddedTrack> {
         return rowView;
     }
 
+    public int findPosition(long trackId) {
+        if (list != null){
+            for (int i = 0; i < list.size(); i++) {
+                if (trackId == list.get(i).getTrackId()) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+
 
     /**
      * This is the handler used for handling messages sent by a

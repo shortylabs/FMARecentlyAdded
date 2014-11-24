@@ -117,10 +117,13 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 
         Intent activityIntent = new Intent(getApplicationContext(), RecentlyAddedListActivity.class);
         activityIntent.putExtra(EXTRA_TRACK_ID, mTrackId);
+        activityIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
 
         PendingIntent pi = PendingIntent.getActivity(getApplicationContext(), 0,
                 activityIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT);
+                PendingIntent.FLAG_UPDATE_CURRENT
+                );
         Notification notification = new NotificationCompat.Builder(getApplicationContext())
                 .setContentTitle(mTrackTitle)
                 .setContentText(mTrackArtist)    // 2nd line of text

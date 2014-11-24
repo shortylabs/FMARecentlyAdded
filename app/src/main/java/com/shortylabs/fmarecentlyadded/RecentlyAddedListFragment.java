@@ -31,6 +31,8 @@ public class RecentlyAddedListFragment extends Fragment {
 
     private RecentlyAddedListAdapter mAdapter;
 
+    private long mTrackId = -1;
+
     public RecentlyAddedListFragment() {
     }
 
@@ -45,10 +47,11 @@ public class RecentlyAddedListFragment extends Fragment {
             Bundle savedInstanceState) {
 
         Intent intent = getActivity().getIntent();
-        long trackId;
 
+        mTrackId = -1;
         if (intent != null && intent.hasExtra(MediaPlayerService.EXTRA_TRACK_ID)) {
-            trackId = intent.getLongExtra(MediaPlayerService.EXTRA_TRACK_ID, 0);
+            mTrackId = intent.getLongExtra(MediaPlayerService.EXTRA_TRACK_ID, 0);
+
         }
 
         View rootView = inflater.inflate(R.layout.fragment_recently_added_list, container, false);
@@ -102,6 +105,15 @@ public class RecentlyAddedListFragment extends Fragment {
                 trackList);
 
         ViewHolder.listview.setAdapter(mAdapter);
+
+        if (mTrackId >=0) {
+            int position = mAdapter.findPosition(mTrackId);
+            if (ViewHolder.listview != null && position >= 0) {
+                ViewHolder.listview.requestFocus();
+                ViewHolder.listview.setSelection(position);
+                mAdapter.notifyDataSetChanged();
+            }
+        }
 
     }
 
