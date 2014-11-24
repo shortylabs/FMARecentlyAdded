@@ -11,9 +11,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import com.shortylabs.fmarecentlyadded.model.RecentlyAddedTrack;
+import com.shortylabs.fmarecentlyadded.service.MediaPlayerService;
 import com.shortylabs.fmarecentlyadded.service.RecentlyAddedService;
 
 import org.json.JSONException;
@@ -29,6 +29,8 @@ public class RecentlyAddedListFragment extends Fragment {
 
     private static String TAG = RecentlyAddedListFragment.class.getSimpleName();
 
+    private RecentlyAddedListAdapter mAdapter;
+
     public RecentlyAddedListFragment() {
     }
 
@@ -41,13 +43,32 @@ public class RecentlyAddedListFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
+
+        Intent intent = getActivity().getIntent();
+        long trackId;
+
+        if (intent != null && intent.hasExtra(MediaPlayerService.EXTRA_TRACK_ID)) {
+            trackId = intent.getLongExtra(MediaPlayerService.EXTRA_TRACK_ID, 0);
+        }
+
         View rootView = inflater.inflate(R.layout.fragment_recently_added_list, container, false);
         ViewHolder.listview =  (ListView)rootView.findViewById(R.id.listView);
+        ViewHolder.listview.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 
         ViewHolder.listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Toast.makeText(getActivity(), "Detail coming soon", Toast.LENGTH_LONG).show();
+                view.setSelected(true);
+
+                // if isPlaying, stop
+                RecentlyAddedTrack item = mAdapter.getItem(position);
+
+                // else, play
+                // send a handler to get callbacks when the playback is paused, stopped, or completed
+                Intent i = MediaPlayerService.makeIntent(getActivity(), handler, item.getTrackId(), item.getTrackFileUrl(),
+                        item.getTrackTitle(), item.getArtistName());
+
+                getActivity().startService(i);
             }
         });
 
@@ -77,11 +98,15 @@ public class RecentlyAddedListFragment extends Fragment {
             return;
         }
 
-        RecentlyAddedListAdapter adapter = new RecentlyAddedListAdapter(getActivity(),
+        mAdapter = new RecentlyAddedListAdapter(this,
                 trackList);
 
-        ViewHolder.listview.setAdapter(adapter);
+        ViewHolder.listview.setAdapter(mAdapter);
 
+    }
+
+    public RecentlyAddedListAdapter getRecentlyAddedListAdapter() {
+        return mAdapter;
     }
 
 
@@ -108,7 +133,6 @@ public class RecentlyAddedListFragment extends Fragment {
         @Override
         public void handleMessage(Message msg) {
 
-            Log.d(TAG, "handleMessage");
 
             final RecentlyAddedListFragment recentlyAddedListFragment = outerClass.get();
 
@@ -120,14 +144,20 @@ public class RecentlyAddedListFragment extends Fragment {
                 // of a Bundle that can be passed across processes.
                 Bundle data = msg.getData();
 
-                // Extract the result from the Bundle.
-                final String jsonResult = data.getString("result");
-                Log.d(TAG, "Result: " + jsonResult);
-                recentlyAddedListFragment.getActivity().runOnUiThread(new Runnable() {
-                    public void run() {
-                        recentlyAddedListFragment.showResults(jsonResult);
-                    }
-                });
+                if (data.containsKey(RecentlyAddedService.EXTRA_RESULTS_KEY)) {
+                    Log.d(TAG, "handleMessage: " + RecentlyAddedService.EXTRA_RESULTS_KEY);
+                    // Extract the result from the Bundle.
+                    final String jsonResult = data.getString(RecentlyAddedService.EXTRA_RESULTS_KEY);
+                    Log.d(TAG, "Result: " + jsonResult);
+                    recentlyAddedListFragment.getActivity().runOnUiThread(new Runnable() {
+                        public void run() {
+                            recentlyAddedListFragment.showResults(jsonResult);
+                        }
+                    });
+                }
+                else if (data.containsKey(MediaPlayerService.STATE_KEY)) {
+                    Log.d(TAG, "handleMessage: " + MediaPlayerService.STATE_KEY);
+                }
 
 
             }

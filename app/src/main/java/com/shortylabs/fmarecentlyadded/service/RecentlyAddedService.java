@@ -24,17 +24,13 @@ public class RecentlyAddedService extends IntentService {
 
     private static final String RECENTLY_ADDED_SERVICE = "recentlyAddedService";
     private static final String TAG = RecentlyAddedService.class.getSimpleName();
+    public static final String EXTRA_RESULTS_KEY = "extraResultsKey"; // JSON returned from FMA request
 
     /**
      * The key used to store/retrieve a Messenger extra from a Bundle.
      */
     public static final String RECENTLY_ADDED_SERVICE_MESSENGER_KEY = "RECENTLY_ADDED_SERVICE_MESSENGER";
 
-
-    /**
-     * The key used to store/retrieve a file's pathname from a Bundle.
-     */
-    public static final String RESULT = "result";
 
 
     /**
@@ -89,7 +85,7 @@ public class RecentlyAddedService extends IntentService {
         Log.d(TAG, "sendResult returning RESULT");
         Message msg = Message.obtain();
         Bundle data = new Bundle();
-        data.putString(RESULT,
+        data.putString(EXTRA_RESULTS_KEY,
                 result);
 
         // Make the Bundle the "data" of the Message.
