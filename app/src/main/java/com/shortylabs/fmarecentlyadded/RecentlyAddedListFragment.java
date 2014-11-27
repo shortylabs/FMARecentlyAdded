@@ -48,6 +48,20 @@ public class RecentlyAddedListFragment extends Fragment
     public RecentlyAddedListFragment() {
     }
 
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setRetainInstance(true);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+    }
+
+
+
     private void initMediaController() {
         mMediaController = new FMAMediaController(getActivity(), mMediaPlayerService) ;
 
@@ -103,6 +117,10 @@ public class RecentlyAddedListFragment extends Fragment
                         item.getTrackTitle(), item.getArtistName());
 
                 getActivity().startService(i);
+
+                if (mConnection == null){
+                    mConnection = initServiceConnection();
+                }
                 getActivity().bindService(i, mConnection, Context.BIND_AUTO_CREATE);
             }
         });
@@ -123,28 +141,32 @@ public class RecentlyAddedListFragment extends Fragment
         }
     }
 
+    private ServiceConnection initServiceConnection() {
+       return new ServiceConnection() {
+
+            @Override
+            public void onServiceConnected(ComponentName className,
+                                           IBinder service) {
+                // We've bound to LocalService, cast the IBinder and get LocalService instance
+                MediaPlayerService.MediaPlayerServiceBinder binder = (MediaPlayerService.MediaPlayerServiceBinder) service;
+                mMediaPlayerService = binder.getService();
+
+                initMediaController();
+
+                mBound = true;
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName arg0) {
+                mMediaPlayerService = null;
+                mBound = false;
+            }
+        };
+
+    }
+
     /** Defines callbacks for service binding, passed to bindService() */
-    private ServiceConnection mConnection = new ServiceConnection() {
-
-        @Override
-        public void onServiceConnected(ComponentName className,
-                                       IBinder service) {
-            // We've bound to LocalService, cast the IBinder and get LocalService instance
-            MediaPlayerService.MediaPlayerServiceBinder binder = (MediaPlayerService.MediaPlayerServiceBinder) service;
-            mMediaPlayerService = binder.getService();
-
-            initMediaController();
-
-            mBound = true;
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName arg0) {
-            mMediaPlayerService = null;
-            mBound = false;
-        }
-    };
-
+    private ServiceConnection mConnection = initServiceConnection();
 
     public void runService() {
 
@@ -171,16 +193,26 @@ public class RecentlyAddedListFragment extends Fragment
 
         ViewHolder.listview.setAdapter(mAdapter);
 
-        if (mTrackId >=0) {
-            int position = mAdapter.findPosition(mTrackId);
-            if (ViewHolder.listview != null && position >= 0) {
-                ViewHolder.listview.setFocusableInTouchMode(true);
-                ViewHolder.listview.requestFocus();
-                ViewHolder.listview.setSelection(position);
-                ViewHolder.listview.setItemChecked(position, true);
-                mAdapter.notifyDataSetChanged();
+
+        if (mMediaPlayerService!= null && mMediaPlayerService.isPlaying() ) {
+            mTrackId = mMediaPlayerService.getTrackId();
+            mMediaController.show(0);
+
+            if (mTrackId >=0) {
+                int position = mAdapter.findPosition(mTrackId);
+                if (ViewHolder.listview != null && position >= 0) {
+                    ViewHolder.listview.setFocusableInTouchMode(true);
+                    ViewHolder.listview.requestFocus();
+                    ViewHolder.listview.setSelection(position);
+                    ViewHolder.listview.setItemChecked(position, true);
+                    ViewHolder.listview.setBackgroundColor(getResources().getColor(R.color.selected_track_background));
+                    ViewHolder.listview.invalidate();
+                    mAdapter.notifyDataSetChanged();
+                }
             }
+
         }
+
 
     }
 

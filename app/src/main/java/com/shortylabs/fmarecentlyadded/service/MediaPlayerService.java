@@ -284,6 +284,10 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 
     }
 
+    public long getTrackId() {
+        return mTrackId;
+    }
+
     @Override
     public IBinder onBind(Intent intent) {
 
