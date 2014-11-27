@@ -383,7 +383,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
                 Log.w(TAG, "AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK");
                 // Lost focus for a short time, but it's ok to keep playing
                 // at an attenuated level
-                if (mMediaPlayer.isPlaying()) {
+                if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
                     mMediaPlayer.setVolume(0.1f, 0.1f);
                 }
                 break;
