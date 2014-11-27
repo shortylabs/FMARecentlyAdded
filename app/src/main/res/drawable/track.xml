@@ -4,8 +4,18 @@
 
     <item android:drawable="@color/selected_track_background"
         android:state_selected="true" />
+    <item android:drawable="@color/selected_track_background"
+        android:state_pressed="true" />
+    <item android:drawable="@color/selected_track_background"
+        android:state_checked="true" />
+
     <item android:drawable="@color/background_floating_material_light"
         android:state_selected="false" />
-    <item android:drawable="@color/background_floating_material_light" />
+    <item android:drawable="@color/background_floating_material_light"
+        android:state_pressed="false" />
+    <item android:drawable="@color/background_floating_material_light"
+        android:state_checked="false" />
+
+
 
 </selector>

@@ -1,8 +1,12 @@
 package com.shortylabs.fmarecentlyadded;
 
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -11,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.MediaController;
 
 import com.shortylabs.fmarecentlyadded.model.RecentlyAddedTrack;
 import com.shortylabs.fmarecentlyadded.service.MediaPlayerService;
@@ -25,7 +30,8 @@ import java.util.List;
 /**
  * A placeholder fragment containing a simple view.
  */
-public class RecentlyAddedListFragment extends Fragment {
+public class RecentlyAddedListFragment extends Fragment
+        implements MediaController.MediaPlayerControl{
 
     private static String TAG = RecentlyAddedListFragment.class.getSimpleName();
 
@@ -33,7 +39,32 @@ public class RecentlyAddedListFragment extends Fragment {
 
     private long mTrackId = -1;
 
+    private MediaPlayerService mMediaPlayerService;
+
+    private boolean mBound;
+
+    private FMAMediaController mMediaController;
+
     public RecentlyAddedListFragment() {
+    }
+
+    private void initMediaController() {
+        mMediaController = new FMAMediaController(getActivity(), mMediaPlayerService) ;
+
+//        mMediaController.setPrevNextListeners(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+////                playNext();
+//            }
+//        }, new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+////                playPrev();
+//            }
+//        });
+        mMediaController.setMediaPlayer(this);
+        mMediaController.setAnchorView(ViewHolder.listview);
+        mMediaController.setEnabled(true);
     }
 
     /**
@@ -72,13 +103,47 @@ public class RecentlyAddedListFragment extends Fragment {
                         item.getTrackTitle(), item.getArtistName());
 
                 getActivity().startService(i);
+                getActivity().bindService(i, mConnection, Context.BIND_AUTO_CREATE);
             }
         });
 
         runService();
 
+
         return rootView;
     }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (mBound == true) {
+            mBound = false;
+            getActivity().unbindService(mConnection);
+            mConnection = null;
+        }
+    }
+
+    /** Defines callbacks for service binding, passed to bindService() */
+    private ServiceConnection mConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className,
+                                       IBinder service) {
+            // We've bound to LocalService, cast the IBinder and get LocalService instance
+            MediaPlayerService.MediaPlayerServiceBinder binder = (MediaPlayerService.MediaPlayerServiceBinder) service;
+            mMediaPlayerService = binder.getService();
+
+            initMediaController();
+
+            mBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+            mMediaPlayerService = null;
+            mBound = false;
+        }
+    };
 
 
     public void runService() {
@@ -109,8 +174,10 @@ public class RecentlyAddedListFragment extends Fragment {
         if (mTrackId >=0) {
             int position = mAdapter.findPosition(mTrackId);
             if (ViewHolder.listview != null && position >= 0) {
+                ViewHolder.listview.setFocusableInTouchMode(true);
                 ViewHolder.listview.requestFocus();
                 ViewHolder.listview.setSelection(position);
+                ViewHolder.listview.setItemChecked(position, true);
                 mAdapter.notifyDataSetChanged();
             }
         }
@@ -121,6 +188,84 @@ public class RecentlyAddedListFragment extends Fragment {
         return mAdapter;
     }
 
+
+
+    //MediaPlayerControl
+
+    @Override
+    public void start() {
+        if (mMediaPlayerService != null){
+            mMediaPlayerService.play();
+            mMediaController.show(0);
+        }
+    }
+
+    @Override
+    public void pause() {
+        if (mMediaPlayerService != null){
+            mMediaPlayerService.pause();
+        }
+
+    }
+
+    @Override
+    public int getDuration() {
+
+        if (mMediaPlayerService != null){
+            return mMediaPlayerService.getDuration();
+        }
+        return -1;
+    }
+
+    @Override
+    public int getCurrentPosition() {
+        if (mMediaPlayerService != null){
+            return mMediaPlayerService.getPosition();
+        }
+        return -1;
+    }
+
+    @Override
+    public void seekTo(int pos) {
+
+        if (mMediaPlayerService != null){
+            mMediaPlayerService.seek(pos);
+        }
+
+    }
+
+    @Override
+    public boolean isPlaying() {
+        if (mMediaPlayerService != null){
+            return mMediaPlayerService.isPlaying();
+        }
+        return false;
+    }
+
+    @Override
+    public int getBufferPercentage() {
+        return 0;
+    }
+
+    @Override
+    public boolean canPause() {
+        return true;
+    }
+
+    @Override
+    public boolean canSeekBackward() {
+        return true;
+    }
+
+    @Override
+    public boolean canSeekForward() {
+        return true;
+    }
+
+    @Override
+    public int getAudioSessionId() {
+        return 0;
+    }
 
     /**
      * This is the handler used for handling messages sent by a
@@ -169,6 +314,9 @@ public class RecentlyAddedListFragment extends Fragment {
                 }
                 else if (data.containsKey(MediaPlayerService.STATE_KEY)) {
                     Log.d(TAG, "handleMessage: " + MediaPlayerService.STATE_KEY);
+                    if (MediaPlayerService.PREPARED.equals(data.getString(MediaPlayerService.STATE_KEY))) {
+                        outerClass.get().start();
+                    }
                 }
 
 

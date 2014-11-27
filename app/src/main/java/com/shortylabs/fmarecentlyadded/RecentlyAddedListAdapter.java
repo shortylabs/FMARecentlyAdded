@@ -13,7 +13,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.shortylabs.fmarecentlyadded.model.RecentlyAddedTrack;
-import com.shortylabs.fmarecentlyadded.service.MediaPlayerService;
 
 import java.lang.ref.WeakReference;
 import java.util.List;
@@ -28,7 +27,6 @@ public class RecentlyAddedListAdapter extends ArrayAdapter<RecentlyAddedTrack> {
 
     private List<RecentlyAddedTrack> list;
     private final RecentlyAddedListFragment mRecentlyAddedListFragment;
-    private String mMediaPlayerState;
     private ListView mListView;
 
 
@@ -44,6 +42,7 @@ public class RecentlyAddedListAdapter extends ArrayAdapter<RecentlyAddedTrack> {
         this.list = list;
         this.handler =  new MessengerHandler(fragment);
     }
+
 
 
 
@@ -111,6 +110,7 @@ public class RecentlyAddedListAdapter extends ArrayAdapter<RecentlyAddedTrack> {
     }
 
 
+
     /**
      * This is the handler used for handling messages sent by a
      * Messenger.
@@ -146,17 +146,12 @@ public class RecentlyAddedListAdapter extends ArrayAdapter<RecentlyAddedTrack> {
                 // of a Bundle that can be passed across processes.
                 Bundle data = msg.getData();
 
-                // Extract the result from the Bundle.
-                final String mediaPlayerState = data.getString(MediaPlayerService.STATE_KEY);
-                Log.d(TAG, "MediaPlayer state: " + mediaPlayerState);
-
                 // is this necessary when using a foreground service?
                 recentlyAddedListFragment.getActivity().runOnUiThread(new Runnable() {
                     public void run() {
 //                        notifyDataSetChanged();
                         RecentlyAddedListAdapter adapter = recentlyAddedListFragment.getRecentlyAddedListAdapter();
                         if (adapter != null) {
-                            adapter.mMediaPlayerState = mediaPlayerState;
                             adapter.notifyDataSetChanged();
                         }
                     }
