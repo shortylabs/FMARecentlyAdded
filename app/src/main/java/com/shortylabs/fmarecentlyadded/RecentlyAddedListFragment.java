@@ -16,6 +16,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.MediaController;
+import android.widget.Toast;
 
 import com.shortylabs.fmarecentlyadded.model.RecentlyAddedTrack;
 import com.shortylabs.fmarecentlyadded.service.MediaPlayerService;
@@ -60,9 +61,16 @@ public class RecentlyAddedListFragment extends Fragment
 
     }
 
+    private void hideController() {
+        if (mMediaController != null) {
+            mMediaController.hideController();
+        }
+    }
+
 
 
     private void initMediaController() {
+        Log.d(TAG, "initMediaController");
         mMediaController = new FMAMediaController(getActivity(), mMediaPlayerService) ;
 
 //        mMediaController.setPrevNextListeners(new View.OnClickListener() {
@@ -131,8 +139,21 @@ public class RecentlyAddedListFragment extends Fragment
         return rootView;
     }
 
+
+    @Override
+    public void onPause() {
+        Log.d(TAG, "onPause");
+        super.onPause();
+    }
+
+    /**
+     * You should usually not bind and unbind during your activity's onResume() and onPause(),
+     * because these callbacks occur at every lifecycle transition and you should keep the
+     * processing that occurs at these transitions to a minimum
+     */
     @Override
     public void onStop() {
+        Log.d(TAG, "onStop");
         super.onStop();
         if (mBound == true) {
             mBound = false;
@@ -147,6 +168,7 @@ public class RecentlyAddedListFragment extends Fragment
             @Override
             public void onServiceConnected(ComponentName className,
                                            IBinder service) {
+                Log.d(TAG, "onServiceConnected");
                 // We've bound to LocalService, cast the IBinder and get LocalService instance
                 MediaPlayerService.MediaPlayerServiceBinder binder = (MediaPlayerService.MediaPlayerServiceBinder) service;
                 mMediaPlayerService = binder.getService();
@@ -158,6 +180,7 @@ public class RecentlyAddedListFragment extends Fragment
 
             @Override
             public void onServiceDisconnected(ComponentName arg0) {
+                Log.d(TAG, "onServiceDisconnected");
                 mMediaPlayerService = null;
                 mBound = false;
             }
@@ -208,6 +231,8 @@ public class RecentlyAddedListFragment extends Fragment
                     ViewHolder.listview.setBackgroundColor(getResources().getColor(R.color.selected_track_background));
                     ViewHolder.listview.invalidate();
                     mAdapter.notifyDataSetChanged();
+
+                    mMediaController.show(0);
                 }
             }
 
@@ -228,6 +253,9 @@ public class RecentlyAddedListFragment extends Fragment
     public void start() {
         if (mMediaPlayerService != null){
             mMediaPlayerService.play();
+            // android.view.WindowLeaked: Activity com.shortylabs.fmarecentlyadded.RecentlyAddedListActivity
+            // has leaked window com.android.internal.policy.impl.PhoneWindow$DecorView{4251f230 V.E..... R....... 0,0-720,176}
+            // that was originally added here at android.view.ViewRootImpl.<init>(ViewRootImpl.java:376)
             mMediaController.show(0);
         }
     }
@@ -348,6 +376,13 @@ public class RecentlyAddedListFragment extends Fragment
                     Log.d(TAG, "handleMessage: " + MediaPlayerService.STATE_KEY);
                     if (MediaPlayerService.PREPARED.equals(data.getString(MediaPlayerService.STATE_KEY))) {
                         outerClass.get().start();
+                    }
+                    else if (MediaPlayerService.COMPLETED.equals(data.getString(MediaPlayerService.STATE_KEY))) {
+                        outerClass.get().hideController();
+                    }
+                    else if (MediaPlayerService.ERROR.equals(data.getString(MediaPlayerService.STATE_KEY))) {
+                        Toast.makeText(recentlyAddedListFragment.getActivity(),
+                                recentlyAddedListFragment.getString(R.string.server_error_try_later), Toast.LENGTH_SHORT).show();
                     }
                 }
 

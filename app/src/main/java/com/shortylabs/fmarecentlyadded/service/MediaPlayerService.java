@@ -68,7 +68,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     public static final String PLAYING = "playing";
     public static final String ERROR = "error";
 
-
+    private boolean isPaused;
 
     //binder
     private final IBinder mMediaPlayerServiceBinder = new MediaPlayerServiceBinder();
@@ -122,8 +122,10 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 
         Log.d(TAG, "init");
 
-        if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
-            stop();
+        if (mMediaPlayer != null && (mMediaPlayer.isPlaying() || isPaused)) {
+            isPaused = false;
+            mMediaPlayer.stop();
+            mMediaPlayer.reset(); // prevent "mediaplayer went away with unhandled events"
         }
 
         Intent activityIntent = new Intent(getApplicationContext(), RecentlyAddedListActivity.class);
@@ -146,33 +148,37 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 
         startForeground(NOTIFICATION_ID, notification);
 
-        mMediaPlayer = new MediaPlayer();
-        mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        mMediaPlayer.setOnPreparedListener(this);
-        mMediaPlayer.setOnErrorListener(this);
-        mMediaPlayer.setOnCompletionListener(this);
+        if (mMediaPlayer == null) {
+            mMediaPlayer = new MediaPlayer();
+            mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            mMediaPlayer.setOnPreparedListener(this);
+            mMediaPlayer.setOnErrorListener(this);
+            mMediaPlayer.setOnCompletionListener(this);
 
-        AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        int result = audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC,
-                AudioManager.AUDIOFOCUS_GAIN);
+            AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+            int result = audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC,
+                    AudioManager.AUDIOFOCUS_GAIN);
 
-        if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-            Log.e(TAG, "Could not get audio focus, returning...");
-            return;
+            if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+                Log.e(TAG, "Could not get audio focus, returning...");
+                return;
+            }
+
+
+            mMediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
+
+            mWifiLock = ((WifiManager) getSystemService(Context.WIFI_SERVICE))
+                    .createWifiLock(WifiManager.WIFI_MODE_FULL, WIFI_LOCK);
+            mWifiLock.acquire();
         }
-
-
-        mMediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
-
-        mWifiLock = ((WifiManager) getSystemService(Context.WIFI_SERVICE))
-                .createWifiLock(WifiManager.WIFI_MODE_FULL, WIFI_LOCK);
-        mWifiLock.acquire();
 
         try {
             mMediaPlayer.setDataSource(mTrackUrl);
             mMediaPlayer.prepareAsync(); // might take long! (for buffering, etc)
         } catch (IOException | IllegalArgumentException e) {
             Log.e(TAG, e.getMessage());
+        } catch(IllegalStateException e) {
+            Log.e(TAG, e.getMessage()==null?e.getClass().getSimpleName():e.getMessage());
         }
 
     }
@@ -197,17 +203,19 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 
 
         Log.d(TAG, "onError");
+        isPaused = false;
         // ... react appropriately ...
         // The MediaPlayer has moved to the Error state, must be reset!
         mMediaPlayer.reset();
-        stop();
         // call OnCompletionListener
+        sendStateMessage(ERROR);
         return false;
     }
 
 
     public void play() {
         Log.w(TAG, "play()");
+        isPaused = false;
         if (mMediaPlayer != null && !mMediaPlayer.isPlaying()) {
             Log.w(TAG, "play() - starting player");
             mMediaPlayer.start();
@@ -217,6 +225,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
 
     private void stop() {
         Log.w(TAG, "stop()");
+        isPaused = false;
         if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
             Log.w(TAG, "stop() - stopping player");
             mMediaPlayer.stop();
@@ -233,7 +242,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     }
 
     public int getDuration(){
-        if (mMediaPlayer != null ) {
+        if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
             Log.w(TAG, "getDuration() ");
             return mMediaPlayer.getDuration();
         }
@@ -255,6 +264,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         if (mMediaPlayer != null ) {
             Log.w(TAG, "pause() ");
             mMediaPlayer.pause();
+            isPaused = true;
         }
     }
 
@@ -273,6 +283,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
         if (mMediaPlayer != null) {
 
             Log.w(TAG, "release() - releasing player");
+            mMediaPlayer.reset(); // prevent "mediaplayer went away with unhandled events"
             mMediaPlayer.release();
             mMediaPlayer = null;
             mWifiLock.release();
@@ -282,6 +293,14 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         mNotificationManager.cancel(NOTIFICATION_ID);
 
+        /**
+         * if you choose to implement the onStartCommand() callback method, then you must explicitly
+         * stop the service, because the service is now considered to be started. In this case, the
+         * service runs until the service stops itself with stopSelf() or another component calls
+         * stopService(), regardless of whether it is bound to any clients.
+         */
+        Log.d(TAG, "Calling stopSelf()");
+        stopSelf();
     }
 
     public long getTrackId() {
@@ -320,6 +339,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnPrepare
     @Override
     public void onCompletion(MediaPlayer mp) {
         Log.w(TAG, "onCompletion()");
+        sendStateMessage(COMPLETED);
         release();
 
     }

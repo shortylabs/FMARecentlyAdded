@@ -36,4 +36,10 @@ public class FMAMediaController  extends MediaController{
             super.hide();
         }
     }
+
+    public void hideController() {
+
+        Log.d(TAG, "hideController calling super.hide()");
+        super.hide();
+    }
 }

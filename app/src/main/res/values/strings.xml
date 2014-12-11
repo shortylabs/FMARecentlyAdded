@@ -10,5 +10,6 @@
     <string name="format_track_entry">
         <xliff:g id="artist">%1$s</xliff:g> - <xliff:g id="trackTitle">%2$s</xliff:g>
     </string>
+    <string name="server_error_try_later">Free Music Archive server isn\'t responding, please try again in a few minutes</string>
 
 </resources>
